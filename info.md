@@ -123,4 +123,149 @@ skoncili jsme u shlukovani
 
 
 
-#
+# prednaska 2023-11-10
+
+ruzne modely ruzna uziti
+
+
+testovani na 4/5 trenovaci a 1/5 testovaci a i na vysledky mit 5 comitee (a rotovat, ktery je ten testovaci kus dat)
+
+### 
+- rdige regression
+- lasso regression
+- a mix zvany elasticnet
+
+v ramci vizualizaci jak to +- vypada, strana 6 - Linear regression
+
+### 
+
+zadam li do modelu nelienearni model jsem schopem vybrat nelinearni cast a skrz linearni model vybrat vystup, ktery funguje...
+wtf ...
+
+##
+
+R2 statistiku preskocil
+
+Mean Average Percentage ERROR - MAPE
+
+
+## neuronove site
+
+aktivacni funkce
+
+### 
+
+konvolucni site  - maji operaci konvoluce - sjednoceni podmnoziny, je to filtr ktery prochazi vstupnimi daty
+-- konvoluce jemaska 3x3 a pluje pro obrazu a hleda jestli tam je nebo neni hrana...
+-- ma nastavene vahy tak, ze pro podcast obrazku pocitala operaci...
+
+####
+
+stochastic gradient descend
+
+####
+
+SVM classification method, ale neuronova sit ma vetsi kapacitu se naucit funcki prevodu
+neuronova sit je aproximator fce
+
+
+#### 
+
+posledni vec je Pooling, zrychleni vypoctu neuronove site.. misto X konvoluci budu mit , pac vezme pixely a smrskne je do 1 hodnoty 
+-- maxima nebo average pooling
+posouvat se pak muzu o pixel nebo o smrknutou cast
+
+
+### toto vse ke konvolcim
+
+
+
+### RNN - rekurrent neural networks
+
+
+maji "pamet", ktera se vyuzvia v dalsim vyhdnoceni
+napr. pro zpracovani casovych rad ...
+
+##
+
+forecasting
+
+
+# 2023-12-02
+
+minule neuronky,
+dnes klasifikace
+
+- klasifikace pomoci nejblizsiho souseda
+- pomoci nejake fce (krivky/plochy/oddelovaci roviny/...)
+- 
+
+priklad s kvalitou oceli
+
+#### Decision trees
+
+- pomoci problematiky "rozdel a panuj"
+- kategorialni vs numbericke hodnoty
+- split criteria...
+- problem s overfittingem ... zakladni vl.
+- rychly a jednoduchy alg. 
+- strmo nema vl. kterou jsme schopni vysvetlit. mzueme vysvetlit pouze pomoci stromu...
+- ... Learn-one-rule - tema samo o sobe
+- kategoricke a numearlni attrib
+
+
+#### Naive Bayes Classifier
+
+-
+
+- neexistuji data, ktera nejsou 100% nezavisla, ale nemusi mit na zavislosti velky efekt a muzeme neco zanedbat...
+
+vezmem Bayesovsky vzorecek
+
+vhodne pro zpracovani texty
+- spam detection
+-- 2 slovniky, slovo a pocet opakovani
+-- `spam assassin` - cas, historie, bayes classificator
+
+- pro hledani pozitivni, negativni recenze
+-- ucinejsi v anglictine nez v cestine "bylo to strasne dobre", "nebylo to vubec spatne" vs "it was horible tasty"
+
+
+#### Support vector machines
+- velmi presne (ne tak moc jako hluboke neuronove site)
+- ma spoustu negativ...
+-- presnost vykoupena pomoci:
+--- 
+
+
+metodologicke
+- validacni vs trenovaci
+-- hodout
+- cross-validation
+- bootstrap
+
+kvantifikacni
+
+-
+
+
+!! precision
+
+output as class levels
+nebo
+pripadne numericke skore
+
+- Recall - 
+
+
+falesna pozitivita 
+- vir jsme ochotni tolerovat falesne poplachy pokud vsechny prave poplachy jsou validni
+
+- podobne u kreditky, pojisteni kreditky, a dle toho banka urci vysi pojistky vuci ukradeni karty
+
+!!! TODO vybrat datovy soubor na projetk...
+
+
+
+##
+
