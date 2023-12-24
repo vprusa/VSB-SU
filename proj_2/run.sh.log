@@ -1,0 +1,9 @@
+Input file is " ./drug200.csv "
+Target variable is " Drug "
+Data:
+['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K', 'Drug']
+Target:
+Drug
+train
+classify
+Model Accuracy: 1.0

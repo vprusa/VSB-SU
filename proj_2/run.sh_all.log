@@ -1,0 +1,66 @@
+Start - Target variable: Age
+Input file is " ./drug200.csv "
+Target variable is " Age "
+Data:
+['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K', 'Drug']
+Target:
+Age
+train
+classify
+Model Accuracy: 0.0
+done
+Start - Target variable: Sex
+Input file is " ./drug200.csv "
+Target variable is " Sex "
+Data:
+['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K', 'Drug']
+Target:
+Sex
+train
+classify
+Model Accuracy: 0.475
+done
+Start - Target variable: BP
+Input file is " ./drug200.csv "
+Target variable is " BP "
+Data:
+['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K', 'Drug']
+Target:
+BP
+train
+classify
+Model Accuracy: 0.725
+done
+Start - Target variable: Cholesterol
+Input file is " ./drug200.csv "
+Target variable is " Cholesterol "
+Data:
+['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K', 'Drug']
+Target:
+Cholesterol
+train
+classify
+Model Accuracy: 0.625
+done
+Start - Target variable: Na_to_K
+Input file is " ./drug200.csv "
+Target variable is " Na_to_K "
+Data:
+['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K', 'Drug']
+Target:
+Na_to_K
+train
+classify
+Model Accuracy: 0.0
+done
+Start - Target variable: Drug
+Input file is " ./drug200.csv "
+Target variable is " Drug "
+Data:
+['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K', 'Drug']
+Target:
+Drug
+train
+classify
+Model Accuracy: 1.0
+done
