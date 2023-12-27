@@ -1,0 +1,8 @@
+Input file is " Mall_Customers.csv "
+Target variable is " Age "
+Data:
+['CustomerID', 'Gender', 'Age', 'Annual Income (k$)', 'Spending Score (1-100)']
+Target:
+Age
+target: Gender data sum - Cluster-0: 173
+target: Age data sum - Cluster-1: 180
