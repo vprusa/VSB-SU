@@ -51,6 +51,10 @@
 #
 # dalsi odkazy na procteni
 # https://analyticsindiamag.com/comprehensive-guide-to-clarans-clustering-algorithm/
+# reasearchgate clarabs algorithm
+# https://www.researchgate.net/figure/Pseudo-code-for-Pro-CLARANS-algorithm_fig5_24253045
+# other lecture
+# https://www.dbs.ifi.lmu.de/Lehre/KDD/SS12/skript/kdd-7-Clustering_part_1.pdf
 
 import getopt
 import sys
@@ -60,7 +64,65 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+import random
+import numpy as np
 
+class Clarans(object):
+
+    def compute_cost(self, data, medoids):
+        cost = 0
+        for point in data:
+            cost += np.min([np.linalg.norm(point - medoid) for medoid in medoids])
+        return cost
+
+    def get_neighbor(self, medoids, data):
+        neighbor = medoids.copy()
+        # Choose a medoid to be replaced
+        to_replace = random.choice(range(len(medoids)))
+        # Choose a non-medoid point as a new medoid
+        # non_medoids = [point for point in data if point not in medoids]
+        medoids_tuples = [tuple(medoid) for medoid in medoids]
+        non_medoids = []
+        # Iterate over each point in the data
+        for point in data:
+            point_tuple = tuple(point)
+            # Check if the point is not a medoid
+            if point_tuple not in medoids_tuples:
+                non_medoids.append(point)
+
+        replacement = random.choice(non_medoids)
+        neighbor[to_replace] = replacement
+        return neighbor
+
+    def cluster(self, data, num_clusters, maxneighbor, numlocal):
+        best_medoids = None
+        best_cost = float('inf')
+
+        self.medoids
+
+        for iteration in range(numlocal):
+            print("current iteration: ", str(iteration))
+            # Randomly select initial medoids
+            current_medoids = random.sample(list(data), num_clusters)
+            current_cost = self.compute_cost(data, current_medoids)
+
+            num_examinations = 0
+            while num_examinations < maxneighbor:
+                neighbor_medoids = self.get_neighbor(current_medoids, data)
+                neighbor_cost = self.compute_cost(data, neighbor_medoids)
+
+                if neighbor_cost < current_cost:
+                    current_medoids = neighbor_medoids
+                    current_cost = neighbor_cost
+                    num_examinations = 0  # Reset counter
+                else:
+                    num_examinations += 1
+
+            if current_cost < best_cost:
+                best_medoids = current_medoids
+                best_cost = current_cost
+
+        return best_medoids, best_cost
 
 def main(argv):
     input_file = ''
@@ -123,84 +185,92 @@ def main(argv):
     if ignore_col is not None:
         data = data.drop(ignore_col, axis='columns')
 
-    orig_target_variable = target_variable
-    if target_variable != "all":
-        # Standardize the data
-        featurs_columns = list(data.columns.values)
-        featurs_columns.remove(target_variable)
-        scaler = StandardScaler()
-        # scaled_features = scaler.fit_transform(df[['Age', 'Annual Income (k$)', 'Spending Score (1-100)']])
-        scaled_features = scaler.fit_transform(data[featurs_columns])
+    # Convert categorical data to numerical data
+    label_encoder = LabelEncoder()
+    data['Gender'] = label_encoder.fit_transform(data['Gender'])
 
-        # Clustering using KMeans
-        kmeans = KMeans(n_clusters=clusters_cnt, random_state=1)
+    # Select the columns you want to use in clustering
+    # Assuming you want to use all the columns except 'CustomerID'
+    # clustering_data = data.drop('CustomerID', axis=1)
+    clustering_data = data
 
-        for i in list(data.columns.values):
-            result_data_name = 'Cluster-' + i
-            data[result_data_name] = kmeans.fit_predict(scaled_features)
+    # Optionally, normalize the data
+    scaler = StandardScaler()
+    clustering_data_normalized = scaler.fit_transform(clustering_data)
 
-        result_data_name = "Cluster"
-        data[result_data_name] = kmeans.fit_predict(scaled_features)
-        # # Visualize clusters
-        data_sum = sum(data[result_data_name])
-        print("data sum - " + result_data_name + ": " + str(data_sum))
-        plot_x = target_variable_x  # 'Annual Income (k$)'
-        plot_y = target_variable_y  # 'Spending Score (1-100)'
-        plt.xlabel(plot_x)
-        plt.ylabel(plot_y)
-        plt.title('Clustered by: ' + target_variable + ' to ' + str(clusters_cnt) + " clusters")
-        plt.scatter(data[plot_x], data[plot_y], c=data[result_data_name])
-        plt.savefig('fig_'+input_file + "_" + target_variable + '.png')
-        plt.show()
+    # Convert to NumPy array for the clarans function
+    npdata = np.array(clustering_data_normalized)
 
-    else:
-        # Calculate clusters and visualize them in single plot
-        rows_cnt = clusters_cnt
-        cols_cnt = 2
-        size = 2
-        fig, ax = plt.subplots(rows_cnt, cols_cnt, sharex='col', sharey='row', figsize=(size * cols_cnt, size * rows_cnt))
-        n = cols_cnt * rows_cnt
-        axes = ax.flatten()
-        plot_x = target_variable_x  # 'Annual Income (k$)'
-        plot_y = target_variable_y  # 'Spending Score (1-100)'
-        plt.xlabel(plot_x)
-        plt.ylabel(plot_y)
-        plt.title('Clusters of customers')
+    # Now you can use the data in the clarans function
+    num_clusters = 5
+    maxneighbor = 5
+    numlocal = 100  # 1000
 
-        target_features_columns = list(data.columns.values)
-        target_features_columns.remove(target_variable_x)
-        target_features_columns.remove(target_variable_y)
+    # orig_target_variable = target_variable
+    # data = np.random.rand(100, 2)  # Generate some 2D points
+    # num_clusters = 3
+    # maxneighbor = 5
+    # numlocal = 4
+    #
+    clarans = Clarans()
+    best_medoids, best_cost = clarans.cluster(npdata, num_clusters, maxneighbor, numlocal)
+    # print("Best Medoids:", best_medoids)
+    # print("Best Cost:", best_cost)
+    # Assuming 'Annual Income (k$)' is the x-axis and 'Spending Score (1-100)' is the y-axis
+    x_axis = target_variable_x  # 'Annual Income (k$)'
+    y_axis = target_variable_y  # 'Spending Score (1-100)'
 
-        clusters = {}
-        for i, j in zip(range(n), axes):
-            # Clustering using KMeans to c clusters
-            c = int(i / cols_cnt) + 1
-            kmeans = KMeans(n_clusters=c, random_state=1)
+    # Reverse the normalization to plot in the original scale
+    data_denormalized = scaler.inverse_transform(npdata)
 
-            result_data_name = 'Cl-' + target_variable + "-" + str(c) + '-' + str(i)
-            featurs_columns = list(data.columns.values)
+    x_idx = clustering_data.columns.get_loc(x_axis)
+    y_idx = clustering_data.columns.get_loc(y_axis)
 
-            idx = (i % cols_cnt)
-            if len(target_features_columns) < idx:
-                continue
-            # prepare data
-            target_variable = target_features_columns[idx]
-            featurs_columns.remove(target_variable)
-            scaler = StandardScaler()
-            scaled_features = scaler.fit_transform(data[featurs_columns])
-            # create clusters
-            clusters[result_data_name] = kmeans.fit_predict(scaled_features)
+    # Extract the columns for the x and y axis
+    x = data_denormalized[:, x_idx]
+    y = data_denormalized[:, y_idx]
 
-            if verbose:
-                # sum is just for debugging to distinguish different clusters
-                data_sum = sum(clusters[result_data_name])
-                print("target: " + target_variable + " data sum - " + result_data_name + ": " + str(data_sum))
-            # j.set_title(target_variable
-            j.set_title(result_data_name)
-            j.scatter(data[plot_x], data[plot_y], c=clusters[result_data_name], marker='.')
+    # Plotting all points
+    plt.scatter(x, y, c='grey', label='Data points')
 
-        plt.savefig('fig_'+input_file + "_" + orig_target_variable + '.png')
-        plt.show()
+    # Highlighting the medoids
+    # for medoid in best_medoids:
+    #     medoid_denormalized = scaler.inverse_transform([npdata[medoid]])
+    #     # plt.scatter(npdata[x_idx],
+    #     #             npdata[y_idx],
+    #     plt.scatter(medoid_denormalized[:, x_idx],
+    #                 medoid_denormalized[:, y_idx],
+    #                 c='red',
+    #                 label='Medoid' if list(best_medoids).index(medoid) == 0 else "")
+
+    # # Highlighting the medoids
+    # for medoid_idx in best_medoids:
+    #     medoid = npdata[medoid_idx]
+    #     medoid_denormalized = scaler.inverse_transform([medoid])
+    #     plt.scatter(medoid_denormalized[:, x_idx],
+    #                 medoid_denormalized[:, y_idx],
+    #                 c='red',
+    #                 label='Medoid' if best_medoids.index(medoid_idx) == 0 else "")
+    # plt.scatter(x, y, c='grey', label='Data points')
+
+    # Highlighting the medoids
+    for medoid in best_medoids:
+        # Find the index of the medoid in npdata
+        medoid_idx = np.where(np.all(npdata == medoid, axis=1))[0][0]
+
+        # Use the index to get the data point for denormalizing and plotting
+        medoid_denormalized = scaler.inverse_transform([npdata[medoid_idx]])
+        plt.scatter(medoid_denormalized[:, x_idx],
+                    medoid_denormalized[:, y_idx],
+                    c='red',
+                    label='Medoid')
+        # label = 'Medoid' if best_medoids.index(medoid) == 0 else "")
+
+    plt.xlabel(x_axis)
+    plt.ylabel(y_axis)
+    plt.title('CLARANS Clustering')
+    # plt.legends()
+    plt.show()
 
 if __name__ == "__main__":
    main(sys.argv[1:])
