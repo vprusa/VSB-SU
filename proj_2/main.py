@@ -10,14 +10,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 
 def parse_csv_to_2d_array(filename):
-    # array_2d = []
-    #
-    # counter = 0
-    # with open(filename, newline='') as csvfile:
-    #     reader = csv.DictReader(csvfile)
-    #     for row in reader:
-    #         array_2d.append(row)
-    #         counter = counter + 1
     df = pd.read_csv(filename)
     return df
 
