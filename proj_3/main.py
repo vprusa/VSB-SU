@@ -210,14 +210,15 @@ def main(argv):
     max_neighbours = 5
     max_iterations = 10
     visualize_anim = True
+    categorical_col = None
     # Define the usage message
-    usage = 'Usage: script.py -i <inputfile> -x <x_target>  -y <y_target> -c <clusters> -g <ignore> [-v] [-a]'
+    usage = 'Usage: script.py -i <inputfile> -x <x_target>  -y <y_target> -c <clusters> -g <ignore_cols:i_1,i_2,...,i_n> -c <categorical::i_1,i_2,...,i_n> [-v] [-a]'
 
     try:
         # Parse the command-line arguments
-        opts, args = getopt.getopt(argv, "hi:x:y:g:c:n:r:va",
+        opts, args = getopt.getopt(argv, "hi:x:y:g:c:c:n:r:va",
                                    ["ifile=", "xtarget=", "ytarget=",
-                                    "ignore=", "clusters=", "neighbours=", "iterations="])
+                                    "ignore=", "categorical=", "clusters=", "neighbours=", "iterations="])
     except getopt.GetoptError:
         print(usage)
         sys.exit(2)
@@ -239,7 +240,9 @@ def main(argv):
         elif opt in ("-r", "--iterations"):
             max_iterations = int(arg)
         elif opt in ("-g", "--ignore"):
-            ignore_col = arg
+            ignore_col = arg.split(",")
+        elif opt in ("-g", "--categorical"):
+            categorical_col = arg.split(",")
         elif opt == '-v':
             verbose = True
         elif opt == '-a':
@@ -275,11 +278,14 @@ def main(argv):
         rawdata[column] = label_encoders[column].fit_transform(rawdata[column])
 
     if ignore_col is not None:
-        clustering_data = rawdata.drop(ignore_col, axis='columns')
+        for i in ignore_col:
+            clustering_data = rawdata.drop(i, axis='columns')
 
     # Convert categorical data to numerical data, normalize the data
-    label_encoder = LabelEncoder()
-    clustering_data['Gender'] = label_encoder.fit_transform(clustering_data['Gender'])
+    if categorical_col is not None:
+        label_encoder = LabelEncoder()
+        for i in categorical_col:
+            clustering_data[i] = label_encoder.fit_transform(clustering_data[i])
     scaler = StandardScaler()
     clustering_data_normalized = scaler.fit_transform(clustering_data)
 
