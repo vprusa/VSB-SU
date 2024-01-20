@@ -74,7 +74,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-# import matplotlib; matplotlib.use("TkAgg")
+import matplotlib; matplotlib.use("TkAgg")
 # import matplotlib; matplotlib.use("svg")
 # ValueError: 'gtkagg' is not a valid value for backend; supported values are
 # ['GTK3Agg', 'GTK3Cairo', 'GTK4Agg', 'GTK4Cairo', 'MacOSX', 'nbAgg', 'QtAgg', 'QtCairo', 'Qt5Agg', 'Qt5Cairo',
@@ -94,6 +94,9 @@ MY_CSS4_COLORS = {
     # 'lightgray': '#D3D3D3',
     'lightgreen': '#90EE90',
     'darkgreen': '#90EE90',
+
+    'lightorange': '#90EE90',
+    'darkorange': '#90EE90',
     # 'lightgrey': '#D3D3D3',
     # 'lightpink': '#FFB6C1',
     # 'lightsalmon': '#FFA07A',
@@ -233,6 +236,7 @@ def main(argv):
     # print("Best Medoids:", best_medoids)
     # print("Best Cost:", best_cost)
     # Assuming 'Annual Income (k$)' is the x-axis and 'Spending Score (1-100)' is the y-axis
+
     x_axis = target_variable_x  # 'Annual Income (k$)'
     y_axis = target_variable_y  # 'Spending Score (1-100)'
 
@@ -286,11 +290,14 @@ def main(argv):
         # medoid = None
 
     fig, ax = plt.subplots()
+    plt.xlabel(target_variable_x)
+    plt.ylabel(target_variable_y)
+
     Clarans.medoid_scatters = []
     ax.scatter(x, y, c='lightgrey', label='Data points')
     for i in range(num_clusters):
-        mc = MedoidCluster(ax.scatter([], [], c=get_color_name(i, True), label='Medoids'),
-                           ax.scatter([], [], c=get_color_name(i, True), marker='x', label='Medoids'),
+        mc = MedoidCluster(ax.scatter([], [], c=get_color_name(i, True), marker='.', label='Medoids'),
+                           ax.scatter([], [], c=get_color_name(i, False), marker='X', label='Medoids'),
                            None)
         Clarans.medoid_scatters.append(mc)
     # medoid_scatter = Clarans.medoid_scatters
@@ -354,7 +361,13 @@ def main(argv):
         for idx, cluster in enumerate(clusters):
             cluster_points = np.array(cluster)
             if len(cluster_points) > 0:
-                Clarans.medoid_scatters[idx].cluster_scatter.set_offsets(cluster_points[:, [x_idx, y_idx]])
+                # Clarans.medoid_scatters[idx].cluster_scatter.set_offsets(cluster_points[:, [x_idx, y_idx]])
+                # medoid_to_plot = list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx])))
+                cluster_data_denormalized = scaler.inverse_transform(cluster_points)
+                cluster_plot_data = list(zip(list(cluster_data_denormalized[:, x_idx]), list(cluster_data_denormalized[:, y_idx])))
+                # Clarans.medoid_scatters[idx].medoid_scatter.set_offsets(medoid_to_plot)
+                # Clarans.medoid_scatters[idx].cluster_scatter.set_offsets(cluster_plot_data)
+                Clarans.medoid_scatters[idx].cluster_scatter.set_offsets(cluster_plot_data)
             # Update medoid scatter plot
             medoid_point = np.array([Clarans.best_medoids[idx]])
             medoid_point_denormalized = scaler.inverse_transform(medoid_point)
@@ -363,13 +376,15 @@ def main(argv):
         Clarans.iteration = Clarans.iteration + 1
 
 
-    plt.show()
-    # anim = True
-    sleep_time = 0.5
-    anim = False
+    # plt.show()
+    anim = True
+    # anim = False
+    sleep_time = 0.25
     if anim:
         ani = FuncAnimation(fig=fig, func=update, frames=max_iterations, interval=sleep_time*1000)
+        plt.show()
     else:
+        plt.show()
         # for debug purposes because the pycharm is not compatible with FuncAnimation debugging
         for i in range(max_iterations):
             update(None)
@@ -378,7 +393,7 @@ def main(argv):
             fig.show()
             plt.pause(sleep_time)
             plt.clf()
-    plt.show()
+        plt.show()
 
     plt.ioff()  # Turn off interactive mode
 
