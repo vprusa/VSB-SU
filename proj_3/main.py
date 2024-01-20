@@ -55,7 +55,11 @@
 # https://www.researchgate.net/figure/Pseudo-code-for-Pro-CLARANS-algorithm_fig5_24253045
 # other lecture
 # https://www.dbs.ifi.lmu.de/Lehre/KDD/SS12/skript/kdd-7-Clustering_part_1.pdf
+#
 # https://en.wikipedia.org/wiki/K-medoids
+# Other approximate algorithms such as CLARA and CLARANS trade quality for runtime.
+# CLARA applies PAM on multiple subsamples, keeping the best result. CLARANS works on the entire data set,
+# but only explores a subset of the possible swaps of medoids and non-medoids using sampling.
 
 import getopt
 import sys
@@ -69,12 +73,39 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-import matplotlib.animation as animation
 
 # import matplotlib; matplotlib.use("TkAgg")
 # import matplotlib; matplotlib.use("svg")
-# ValueError: 'gtkagg' is not a valid value for backend; supported values are ['GTK3Agg', 'GTK3Cairo', 'GTK4Agg', 'GTK4Cairo', 'MacOSX', 'nbAgg', 'QtAgg', 'QtCairo', 'Qt5Agg', 'Qt5Cairo', 'TkAgg', 'TkCairo', 'WebAgg', 'WX', 'WXAgg', 'WXCairo', 'agg', 'cairo', 'pdf', 'pgf', 'ps', 'svg', 'template']
+# ValueError: 'gtkagg' is not a valid value for backend; supported values are
+# ['GTK3Agg', 'GTK3Cairo', 'GTK4Agg', 'GTK4Cairo', 'MacOSX', 'nbAgg', 'QtAgg', 'QtCairo', 'Qt5Agg', 'Qt5Cairo',
+# 'TkAgg', 'TkCairo', 'WebAgg', 'WX', 'WXAgg', 'WXCairo', 'agg', 'cairo', 'pdf', 'pgf', 'ps', 'svg', 'template']
 # import matplotlib; matplotlib.use("Agg")
+
+MY_CSS4_COLORS = {
+    # 'red': '#FF0000',
+    'lightred': '#FFB6C1',
+    'darkred': '#FF0000',
+    'lightblue': '#ADD8E6',
+    'darkblue': '#',
+    # 'lightcoral': '#F08080',
+    'lightcyan': '#E0FFFF',
+    'darkcyan': '#E0FFFF',
+    # 'lightgoldenrodyellow': '#FAFAD2',
+    # 'lightgray': '#D3D3D3',
+    'lightgreen': '#90EE90',
+    'darkgreen': '#90EE90',
+    # 'lightgrey': '#D3D3D3',
+    # 'lightpink': '#FFB6C1',
+    # 'lightsalmon': '#FFA07A',
+    # 'lightseagreen': '#20B2AA',
+    # 'lightskyblue': '#87CEFA',
+    # 'lightslategray': '#778899',
+    # 'lightslategrey': '#778899',
+    # 'lightsteelblue': '#B0C4DE',
+    # 'lightyellow': '#FFFFE0',
+    # 'darkyellow': '#FFFFE0'
+
+}
 
 class Clarans(object):
 
@@ -102,36 +133,6 @@ class Clarans(object):
         replacement = random.choice(non_medoids)
         neighbor[to_replace] = replacement
         return neighbor
-
-    def cluster(self, data, num_clusters, maxneighbor, numlocal):
-        best_medoids = None
-        best_cost = float('inf')
-
-        # self.medoids
-
-        for iteration in range(numlocal):
-            print("current iteration: ", str(iteration))
-            # Randomly select initial medoids
-            current_medoids = random.sample(list(data), num_clusters)
-            current_cost = self.compute_cost(data, current_medoids)
-
-            num_examinations = 0
-            while num_examinations < maxneighbor:
-                neighbor_medoids = self.get_neighbor(current_medoids, data)
-                neighbor_cost = self.compute_cost(data, neighbor_medoids)
-
-                if neighbor_cost < current_cost:
-                    current_medoids = neighbor_medoids
-                    current_cost = neighbor_cost
-                    num_examinations = 0  # Reset counter
-                else:
-                    num_examinations += 1
-
-            if current_cost < best_cost:
-                best_medoids = current_medoids
-                best_cost = current_cost
-
-        return best_medoids, best_cost
 
 def main(argv):
     input_file = ''
@@ -245,41 +246,9 @@ def main(argv):
     x = data_denormalized[:, x_idx]
     y = data_denormalized[:, y_idx]
 
-    # Plotting all points
-
-    # Highlighting the medoids
-    # for medoid in best_medoids:
-    #     medoid_denormalized = scaler.inverse_transform([npdata[medoid]])
-    #     # plt.scatter(npdata[x_idx],
-    #     #             npdata[y_idx],
-    #     plt.scatter(medoid_denormalized[:, x_idx],
-    #                 medoid_denormalized[:, y_idx],
-    #                 c='red',
-    #                 label='Medoid' if list(best_medoids).index(medoid) == 0 else "")
-
-    # # Highlighting the medoids
-    # for medoid_idx in best_medoids:
-    #     medoid = npdata[medoid_idx]
-    #     medoid_denormalized = scaler.inverse_transform([medoid])
-    #     plt.scatter(medoid_denormalized[:, x_idx],
-    #                 medoid_denormalized[:, y_idx],
-    #                 c='red',
-    #                 label='Medoid' if best_medoids.index(medoid_idx) == 0 else "")
-    # plt.scatter(x, y, c='grey', label='Data points')
-
-
     clarans = Clarans()
-    # best_medoids, best_cost = clarans.cluster(npdata, num_clusters, maxneighbor, numlocal, plt)
-    # label = 'Medoid' if best_medoids.index(medoid) == 0 else "")
-
-    # def cluster(self, data, num_clusters, maxneighbor, numlocal, plt, x, y):
     best_medoids = None
     best_cost = float('inf')
-
-    # fig, ax = plt.subplots()
-
-    # data_scatter = ax.scatter(data_points[:, 0], data_points[:, 1], c='grey', label='Data points')
-    # medoid_scatter = ax.scatter([], [], c='red', label='Medoids')
 
     data_bkp = data
     data = npdata
@@ -287,35 +256,58 @@ def main(argv):
     best_cost = float('inf')
     medoids_over_iterations = []  # Store medoids of each iteration for the animation
 
+    import matplotlib.colors as mcolors
+
+    def get_color_name(input_integer, light = False):
+        # Get a list of color names
+        color_names = list(filter(lambda x: "light" in x, list(MY_CSS4_COLORS.keys())))
+        # color_names = list(filter(lambda x: "light" in x, list(mcolors.XKCD_COLORS.keys())))
+        # color_names = list(mcolors.XKCD_COLORS.keys())
+        # color_names = list(mcolors.TABLEAU_COLORS.keys())
+
+        # Calculate the index in the color_names list
+        # color_index = ((input_integer * 5) + 20) % len(color_names)
+        color_index = (input_integer + 8) % len(color_names)
+
+        # Return the color name
+        if light:
+            cn = color_names[color_index].replace("light", "dark")
+            return cn
+        else:
+            cn = color_names[color_index].replace("light", "")
+            return cn
+
+    class MedoidCluster(object):
+        def __init__(self, cs, ms, m):
+            self.cluster_scatter = cs
+            self.medoid_scatter = ms
+            self.medoid = m
+        # scatter = None
+        # medoid = None
+
     fig, ax = plt.subplots()
-
-    ax.scatter(x, y, c='grey', label='Data points')
-    Clarans.medoid_scatter = ax.scatter([], [], c='red', label='Medoids')
-    medoid_scatter = Clarans.medoid_scatter
-
-    # plt.ion()  # Turn on interactive mode
-    # plt.show()
-
-    # data_scatter = ax.scatter(data[:, 0], data[:, 1], c='grey', label='Data points')
-
-
-
-    # data_scatter = ax.scatter(data[:, 0], data[:, 1], c='grey', label='Data points')
-    # medoid_scatter, = ax.plot([], [], 'ro', label='Medoids')  # 'ro' for red dots
-
-    # def init():
-    #     medoid_scatter.set_offsets([])
-    #     return medoid_scatter,
-    #
-    # def update(frame):
-    #     medoids = medoids_over_iterations[frame]
-    #     medoid_scatter.set_offsets(medoids)
-    #     return medoid_scatter,
-    # plt.show()
+    Clarans.medoid_scatters = []
+    ax.scatter(x, y, c='lightgrey', label='Data points')
+    for i in range(num_clusters):
+        mc = MedoidCluster(ax.scatter([], [], c=get_color_name(i, True), label='Medoids'),
+                           ax.scatter([], [], c=get_color_name(i, True), marker='x', label='Medoids'),
+                           None)
+        Clarans.medoid_scatters.append(mc)
+    # medoid_scatter = Clarans.medoid_scatters
 
     Clarans.iteration = 0
 
-
+    def assign_points_to_medoids(data, medoids):
+        # Create a list of empty lists to store points for each medoid
+        clusters = [[] for _ in medoids]
+        for point in data:
+            # Compute distances from the current point to each medoid
+            distances = [np.linalg.norm(point - medoid) for medoid in medoids]
+            # Find the index of the closest medoid
+            closest_medoid_idx = np.argmin(distances)
+            # Assign the point to the cluster of the closest medoid
+            clusters[closest_medoid_idx].append(point)
+        return clusters
     Clarans.best_medoids = None
     Clarans.best_cost = float('inf')
     # for iteration in range(numlocal):
@@ -323,43 +315,6 @@ def main(argv):
         current_medoids = random.sample(list(data), num_clusters)
         current_cost = clarans.compute_cost(data, current_medoids)
         print("current iteration: ", str(Clarans.iteration))
-        # time.sleep(1)
-        # Update plot
-        medoid_positions = np.array(current_medoids)
-        # medoid_scatter.set_data(medoid_positions[:, 0], medoid_positions[:, 1])
-        # medoid_scatter.set_data([], [])
-        # ax.scatter([1], [1], c='red', label='Medoids')
-
-        medoids_to_plot = []
-        if Clarans.best_medoids is not None:
-            for medoid in Clarans.best_medoids:
-                # Find the index of the medoid in npdata
-                medoid_idx = np.where(np.all(npdata == medoid, axis=1))[0][0]
-
-                # Use the index to get the data point for denormalizing and plotting
-                medoid_denormalized = scaler.inverse_transform([npdata[medoid_idx]])
-                # ax.scatter(medoid_denormalized[:, x_idx],
-                #             medoid_denormalized[:, y_idx],
-                #             c='red',
-                #             label='Medoid')
-            # Update the line data
-            #     medoid_scatter.set_offsets([medoid_denormalized[:, x_idx], medoid_denormalized[:, y_idx]])
-            #     medoid_scatter.set_offsets([[medoid_denormalized[:, x_idx], medoid_denormalized[:, y_idx]]])
-            #     medoid_scatter.set_ydata(medoid_denormalized[:, y_idx])
-            #     plt.plot(y)
-            #     ax.scatter(medoid_denormalized[:, x_idx],
-            #                 medoid_denormalized[:, y_idx],
-            #                 c='red',
-            #                 label='Medoid')
-            #     medoid_scatter.set_offsets([medoid_denormalized[:, x_idx], medoid_denormalized[:, y_idx]])
-
-                # medoid_scatter.set_offsets(list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx]))))
-                # medoids_to_plot.append(list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx]))))
-                medoids_to_plot.append(list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx]))))
-            medoids_to_plot_f = list([item for row in medoids_to_plot for item in row])
-            Clarans.medoid_scatter.set_offsets(medoids_to_plot_f)
-        Clarans.iteration = Clarans.iteration + 1
-
 
         num_examinations = 0
         while num_examinations < maxneighbor:
@@ -377,27 +332,43 @@ def main(argv):
             Clarans.best_medoids = current_medoids
             Clarans.best_cost = current_cost
 
-        # results = Clarans.medoid_scatter
-        # if (Clarans.iteration < 100):
+        # Update plot
+        medoids_to_plot = []
+        # if Clarans.best_medoids is not None:
+        #     idx = 0
+        #     for medoid in Clarans.best_medoids:
+        #         # Find the index of the medoid in npdata
+        #         medoid_idx = np.where(np.all(npdata == medoid, axis=1))[0][0]
+        #         # Use the index to get the data point for denormalizing and plotting
+        #         medoid_denormalized = scaler.inverse_transform([npdata[medoid_idx]])
+        #         medoid_to_plot = list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx])))
+        #         Clarans.medoid_scatters[idx].medoid_scatter.set_offsets(medoid_to_plot)
         #
-        # if (Clarans.iteration > 10):
-        #     return Clarans.medoid_scatter
+        #         # TODO scatter medoid's cluster
+        #         # Clarans.medoid_scatters[idx].cluster_scatter.set_offsets()
+        #         idx = idx + 1
 
-        # return results
-        # return [Clarans.medoid_scatter, update(frame)]
+        # Assign points to medoids and get clusters
+        clusters = assign_points_to_medoids(data, Clarans.best_medoids)
+        # Update plot for each medoid and its cluster
+        for idx, cluster in enumerate(clusters):
+            cluster_points = np.array(cluster)
+            if len(cluster_points) > 0:
+                Clarans.medoid_scatters[idx].cluster_scatter.set_offsets(cluster_points[:, [x_idx, y_idx]])
+            # Update medoid scatter plot
+            medoid_point = np.array([Clarans.best_medoids[idx]])
+            medoid_point_denormalized = scaler.inverse_transform(medoid_point)
+            Clarans.medoid_scatters[idx].medoid_scatter.set_offsets(medoid_point_denormalized[:, [x_idx, y_idx]])
 
-    # fig.canvas.draw()
-    # fig.canvas.flush_events()
-    # plt.pause(0.5)
+        Clarans.iteration = Clarans.iteration + 1
 
-    # ani = FuncAnimation(fig, update, frames=100, interval=500)
-    # ani = FuncAnimation(fig, update, frames=len(medoids_over_iterations), init_func=init, blit=True)
+
     plt.show()
     # anim = True
-    sleepTime = 0.5
+    sleep_time = 0.5
     anim = False
     if anim:
-        ani = FuncAnimation(fig=fig, func=update, frames=max_iterations, interval=sleepTime*1000)
+        ani = FuncAnimation(fig=fig, func=update, frames=max_iterations, interval=sleep_time*1000)
     else:
         # for debug purposes because the pycharm is not compatible with FuncAnimation debugging
         for i in range(max_iterations):
@@ -405,106 +376,11 @@ def main(argv):
             # fig.canvas.draw()
             fig.suptitle("Iteration" + str(i))
             fig.show()
-            plt.pause(sleepTime)
+            plt.pause(sleep_time)
             plt.clf()
     plt.show()
-    # ani = animation.FuncAnimation(fig, update, frames=100, interval=500)
-    # ani.save('scatter.gif', writer='pillow')
-
-        # plt.clf()
-
-            # plt.draw()
-                # plt.pause(1)
-                # plt.cla()
-                # Redraw the plot
-                # fig.canvas.draw()
-                # fig.canvas.flush_events()
-        # plt.clf()
-        # fig.canvas.draw()
-        # plt.plot()
-        # fig.canvas.draw()
-        # plt.pause(1)
-        # plt.clf()  # clear figure
-
-        # Pause for a short time to create the appearance of animation
-        # time.sleep(0.1)
-        # plt.show()
-
-        ##
-        # fig.show()
-        # plt.pause(0.5)
-        # plt.clf()
-
-        # plt.clf()
-        # fig.clf()
-
-        # fig.draw(plt) ?
-
-        # fig.show()
-        # plt.draw()
-        # ax.legend()
-        # ax.legend()
-        # plt.draw()
-        # plt.pause(1.0)  # Pause to update the plot
-
-    # for iteration in range(numlocal):
-    #     current_medoids = random.sample(list(data), num_clusters)
-    #     current_cost = clarans.compute_cost(data, current_medoids)
-    #     medoids_over_iterations.append(current_medoids)  # Store current medoids for animation
-    #     ax.legend()
-    #     plt.draw()
-    #     plt.pause(0.1)  # Pause to update the plot
-    #
-    #     num_examinations = 0
-    #     while num_examinations < maxneighbor:
-    #         neighbor_medoids = clarans.get_neighbor(current_medoids, data)
-    #         neighbor_cost = clarans.compute_cost(data, neighbor_medoids)
-    #
-    #         if neighbor_cost < current_cost:
-    #             current_medoids = neighbor_medoids
-    #             current_cost = neighbor_cost
-    #             num_examinations = 0  # Reset counter
-    #         else:
-    #             num_examinations += 1
-    #
-    #     if current_cost < best_cost:
-    #         best_medoids = current_medoids
-    #         best_cost = current_cost
-
 
     plt.ioff()  # Turn off interactive mode
-    # plt.show()
-    # plt.show()
 
 if __name__ == "__main__":
    main(sys.argv[1:])
-   # fig, ax = plt.subplots()
-   # t = np.linspace(0, 3, 40)
-   # g = -9.81
-   # v0 = 12
-   # z = g * t ** 2 / 2 + v0 * t
-   #
-   # v02 = 5
-   # z2 = g * t ** 2 / 2 + v02 * t
-   #
-   # scat = ax.scatter(t[0], z[0], c="b", s=5, label=f'v0 = {v0} m/s')
-   # line2 = ax.plot(t[0], z2[0], label=f'v0 = {v02} m/s')[0]
-   # ax.set(xlim=[0, 3], ylim=[-4, 10], xlabel='Time [s]', ylabel='Z [m]')
-   # ax.legend()
-   #
-   #
-   # def update(frame):
-   #     # for each frame, update the data stored on each artist.
-   #     x = t[:frame]
-   #     y = z[:frame]
-   #     # update the scatter plot:
-   #     data = np.stack([x, y]).T
-   #     scat.set_offsets(data)
-   #     # update the line plot:
-   #     line2.set_xdata(t[:frame])
-   #     line2.set_ydata(z2[:frame])
-   #     return (scat, line2)
-   #
-   #
-   # ani = animation.FuncAnimation(fig=fig, func=update, frames=40, interval=30)
-   # plt.show()
