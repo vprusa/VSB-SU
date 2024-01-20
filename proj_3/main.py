@@ -55,6 +55,7 @@
 # https://www.researchgate.net/figure/Pseudo-code-for-Pro-CLARANS-algorithm_fig5_24253045
 # other lecture
 # https://www.dbs.ifi.lmu.de/Lehre/KDD/SS12/skript/kdd-7-Clustering_part_1.pdf
+# https://en.wikipedia.org/wiki/K-medoids
 
 import getopt
 import sys
@@ -70,7 +71,10 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import matplotlib.animation as animation
 
-import matplotlib; matplotlib.use("TkAgg")
+# import matplotlib; matplotlib.use("TkAgg")
+# import matplotlib; matplotlib.use("svg")
+# ValueError: 'gtkagg' is not a valid value for backend; supported values are ['GTK3Agg', 'GTK3Cairo', 'GTK4Agg', 'GTK4Cairo', 'MacOSX', 'nbAgg', 'QtAgg', 'QtCairo', 'Qt5Agg', 'Qt5Cairo', 'TkAgg', 'TkCairo', 'WebAgg', 'WX', 'WXAgg', 'WXCairo', 'agg', 'cairo', 'pdf', 'pgf', 'ps', 'svg', 'template']
+# import matplotlib; matplotlib.use("Agg")
 
 class Clarans(object):
 
@@ -133,13 +137,16 @@ def main(argv):
     input_file = ''
     target_variable = ''
     verbose = False
-
+    max_neighbours = 5
+    max_iterations = 10
     # Define the usage message
     usage = 'Usage: script.py -i <inputfile> -t <target> -x <x_target>  -y <y_target> -c <clusters> -g <ignore> [-v]'
 
     try:
         # Parse the command-line arguments
-        opts, args = getopt.getopt(argv, "hi:t:x:y:g:c:v", ["ifile=", "target=", "xtarget=", "ytarget=", "clusters=", "ignore="])
+        opts, args = getopt.getopt(argv, "hi:t:x:y:g:c:n:r:v",
+                                   ["ifile=", "target=", "xtarget=", "ytarget=",
+                                    "ignore=", "clusters=", "neighbours=", "iterations="])
     except getopt.GetoptError:
         print(usage)
         sys.exit(2)
@@ -158,6 +165,10 @@ def main(argv):
             target_variable_y = arg
         elif opt in ("-c", "--clusters"):
             clusters_cnt = int(arg)
+        elif opt in ("-n", "--neighbours"):
+            max_neighbours = int(arg)
+        elif opt in ("-r", "--iterations"):
+            max_iterations = int(arg)
         elif opt in ("-g", "--ignore"):
             ignore_col = arg
         elif opt == '-v':
@@ -207,9 +218,10 @@ def main(argv):
     npdata = np.array(clustering_data_normalized)
 
     # Now you can use the data in the clarans function
-    num_clusters = 5
-    maxneighbor = 5
-    numlocal = 100 #  10  # 100  # 1000
+    num_clusters = clusters_cnt
+    maxneighbor = max_neighbours
+    # numlocal = 100 #  10  # 100  # 1000
+    numlocal = max_iterations  #  10  # 100  # 1000
 
     # orig_target_variable = target_variable
     # data = np.random.rand(100, 2)  # Generate some 2D points
@@ -380,7 +392,21 @@ def main(argv):
 
     # ani = FuncAnimation(fig, update, frames=100, interval=500)
     # ani = FuncAnimation(fig, update, frames=len(medoids_over_iterations), init_func=init, blit=True)
-    ani = FuncAnimation(fig=fig, func=update, frames=10, interval=1000)  #, blit=True)
+    plt.show()
+    # anim = True
+    sleepTime = 0.5
+    anim = False
+    if anim:
+        ani = FuncAnimation(fig=fig, func=update, frames=max_iterations, interval=sleepTime*1000)
+    else:
+        # for debug purposes because the pycharm is not compatible with FuncAnimation debugging
+        for i in range(max_iterations):
+            update(None)
+            # fig.canvas.draw()
+            fig.suptitle("Iteration" + str(i))
+            fig.show()
+            plt.pause(sleepTime)
+            plt.clf()
     plt.show()
     # ani = animation.FuncAnimation(fig, update, frames=100, interval=500)
     # ani.save('scatter.gif', writer='pillow')
@@ -448,7 +474,7 @@ def main(argv):
 
     plt.ioff()  # Turn off interactive mode
     # plt.show()
-    plt.show()
+    # plt.show()
 
 if __name__ == "__main__":
    main(sys.argv[1:])
