@@ -68,6 +68,9 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import matplotlib.animation as animation
+
+import matplotlib; matplotlib.use("TkAgg")
 
 class Clarans(object):
 
@@ -206,7 +209,7 @@ def main(argv):
     # Now you can use the data in the clarans function
     num_clusters = 5
     maxneighbor = 5
-    numlocal = 10  # 100  # 1000
+    numlocal = 100 #  10  # 100  # 1000
 
     # orig_target_variable = target_variable
     # data = np.random.rand(100, 2)  # Generate some 2D points
@@ -275,15 +278,14 @@ def main(argv):
     fig, ax = plt.subplots()
 
     ax.scatter(x, y, c='grey', label='Data points')
-    plt.ion()  # Turn on interactive mode
-    plt.show()
+    Clarans.medoid_scatter = ax.scatter([], [], c='red', label='Medoids')
+    medoid_scatter = Clarans.medoid_scatter
+
+    # plt.ion()  # Turn on interactive mode
+    # plt.show()
 
     # data_scatter = ax.scatter(data[:, 0], data[:, 1], c='grey', label='Data points')
 
-    medoid_scatter = ax.scatter([], [], c='red', label='Medoids')
-
-    best_medoids = None
-    best_cost = float('inf')
 
 
     # data_scatter = ax.scatter(data[:, 0], data[:, 1], c='grey', label='Data points')
@@ -297,12 +299,18 @@ def main(argv):
     #     medoids = medoids_over_iterations[frame]
     #     medoid_scatter.set_offsets(medoids)
     #     return medoid_scatter,
-    plt.show()
+    # plt.show()
 
-    for iteration in range(numlocal):
+    Clarans.iteration = 0
+
+
+    Clarans.best_medoids = None
+    Clarans.best_cost = float('inf')
+    # for iteration in range(numlocal):
+    def update(frame):
         current_medoids = random.sample(list(data), num_clusters)
         current_cost = clarans.compute_cost(data, current_medoids)
-        print("current iteration: ", str(iteration))
+        print("current iteration: ", str(Clarans.iteration))
         # time.sleep(1)
         # Update plot
         medoid_positions = np.array(current_medoids)
@@ -311,8 +319,8 @@ def main(argv):
         # ax.scatter([1], [1], c='red', label='Medoids')
 
         medoids_to_plot = []
-        if best_medoids is not None:
-            for medoid in best_medoids:
+        if Clarans.best_medoids is not None:
+            for medoid in Clarans.best_medoids:
                 # Find the index of the medoid in npdata
                 medoid_idx = np.where(np.all(npdata == medoid, axis=1))[0][0]
 
@@ -337,8 +345,47 @@ def main(argv):
                 # medoids_to_plot.append(list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx]))))
                 medoids_to_plot.append(list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx]))))
             medoids_to_plot_f = list([item for row in medoids_to_plot for item in row])
-            medoid_scatter.set_offsets(medoids_to_plot_f)
+            Clarans.medoid_scatter.set_offsets(medoids_to_plot_f)
+        Clarans.iteration = Clarans.iteration + 1
 
+
+        num_examinations = 0
+        while num_examinations < maxneighbor:
+            neighbor_medoids = clarans.get_neighbor(current_medoids, data)
+            neighbor_cost = clarans.compute_cost(data, neighbor_medoids)
+
+            if neighbor_cost < current_cost:
+                current_medoids = neighbor_medoids
+                current_cost = neighbor_cost
+                num_examinations = 0  # Reset counter
+            else:
+                num_examinations += 1
+
+        if current_cost < Clarans.best_cost:
+            Clarans.best_medoids = current_medoids
+            Clarans.best_cost = current_cost
+
+        # results = Clarans.medoid_scatter
+        # if (Clarans.iteration < 100):
+        #
+        # if (Clarans.iteration > 10):
+        #     return Clarans.medoid_scatter
+
+        # return results
+        # return [Clarans.medoid_scatter, update(frame)]
+
+    # fig.canvas.draw()
+    # fig.canvas.flush_events()
+    # plt.pause(0.5)
+
+    # ani = FuncAnimation(fig, update, frames=100, interval=500)
+    # ani = FuncAnimation(fig, update, frames=len(medoids_over_iterations), init_func=init, blit=True)
+    ani = FuncAnimation(fig=fig, func=update, frames=10, interval=1000)  #, blit=True)
+    plt.show()
+    # ani = animation.FuncAnimation(fig, update, frames=100, interval=500)
+    # ani.save('scatter.gif', writer='pillow')
+
+        # plt.clf()
 
             # plt.draw()
                 # plt.pause(1)
@@ -357,14 +404,15 @@ def main(argv):
         # time.sleep(0.1)
         # plt.show()
 
-        fig.show()
-        plt.pause(1)
-        plt.clf()
+        ##
+        # fig.show()
+        # plt.pause(0.5)
+        # plt.clf()
 
         # plt.clf()
         # fig.clf()
 
-        # fig.draw(plt)?
+        # fig.draw(plt) ?
 
         # fig.show()
         # plt.draw()
@@ -372,22 +420,6 @@ def main(argv):
         # ax.legend()
         # plt.draw()
         # plt.pause(1.0)  # Pause to update the plot
-
-        num_examinations = 0
-        while num_examinations < maxneighbor:
-            neighbor_medoids = clarans.get_neighbor(current_medoids, data)
-            neighbor_cost = clarans.compute_cost(data, neighbor_medoids)
-
-            if neighbor_cost < current_cost:
-                current_medoids = neighbor_medoids
-                current_cost = neighbor_cost
-                num_examinations = 0  # Reset counter
-            else:
-                num_examinations += 1
-
-        if current_cost < best_cost:
-            best_medoids = current_medoids
-            best_cost = current_cost
 
     # for iteration in range(numlocal):
     #     current_medoids = random.sample(list(data), num_clusters)
@@ -420,3 +452,33 @@ def main(argv):
 
 if __name__ == "__main__":
    main(sys.argv[1:])
+   # fig, ax = plt.subplots()
+   # t = np.linspace(0, 3, 40)
+   # g = -9.81
+   # v0 = 12
+   # z = g * t ** 2 / 2 + v0 * t
+   #
+   # v02 = 5
+   # z2 = g * t ** 2 / 2 + v02 * t
+   #
+   # scat = ax.scatter(t[0], z[0], c="b", s=5, label=f'v0 = {v0} m/s')
+   # line2 = ax.plot(t[0], z2[0], label=f'v0 = {v02} m/s')[0]
+   # ax.set(xlim=[0, 3], ylim=[-4, 10], xlabel='Time [s]', ylabel='Z [m]')
+   # ax.legend()
+   #
+   #
+   # def update(frame):
+   #     # for each frame, update the data stored on each artist.
+   #     x = t[:frame]
+   #     y = z[:frame]
+   #     # update the scatter plot:
+   #     data = np.stack([x, y]).T
+   #     scat.set_offsets(data)
+   #     # update the line plot:
+   #     line2.set_xdata(t[:frame])
+   #     line2.set_ydata(z2[:frame])
+   #     return (scat, line2)
+   #
+   #
+   # ani = animation.FuncAnimation(fig=fig, func=update, frames=40, interval=30)
+   # plt.show()
