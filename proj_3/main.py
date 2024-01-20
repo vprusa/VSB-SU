@@ -273,10 +273,11 @@ def main(argv):
     medoids_over_iterations = []  # Store medoids of each iteration for the animation
 
     fig, ax = plt.subplots()
-    ax.scatter(x, y, c='grey', label='Data points')
 
+    ax.scatter(x, y, c='grey', label='Data points')
     plt.ion()  # Turn on interactive mode
     plt.show()
+
     # data_scatter = ax.scatter(data[:, 0], data[:, 1], c='grey', label='Data points')
 
     medoid_scatter = ax.scatter([], [], c='red', label='Medoids')
@@ -296,19 +297,20 @@ def main(argv):
     #     medoids = medoids_over_iterations[frame]
     #     medoid_scatter.set_offsets(medoids)
     #     return medoid_scatter,
+    plt.show()
 
     for iteration in range(numlocal):
         current_medoids = random.sample(list(data), num_clusters)
         current_cost = clarans.compute_cost(data, current_medoids)
         print("current iteration: ", str(iteration))
-        time.sleep(1)
+        # time.sleep(1)
         # Update plot
         medoid_positions = np.array(current_medoids)
         # medoid_scatter.set_data(medoid_positions[:, 0], medoid_positions[:, 1])
         # medoid_scatter.set_data([], [])
         # ax.scatter([1], [1], c='red', label='Medoids')
 
-
+        medoids_to_plot = []
         if best_medoids is not None:
             for medoid in best_medoids:
                 # Find the index of the medoid in npdata
@@ -325,22 +327,42 @@ def main(argv):
             #     medoid_scatter.set_offsets([[medoid_denormalized[:, x_idx], medoid_denormalized[:, y_idx]]])
             #     medoid_scatter.set_ydata(medoid_denormalized[:, y_idx])
             #     plt.plot(y)
-                plt.scatter(medoid_denormalized[:, x_idx],
-                            medoid_denormalized[:, y_idx],
-                            c='red',
-                            label='Medoid')
-                # plt.draw()
+            #     ax.scatter(medoid_denormalized[:, x_idx],
+            #                 medoid_denormalized[:, y_idx],
+            #                 c='red',
+            #                 label='Medoid')
+            #     medoid_scatter.set_offsets([medoid_denormalized[:, x_idx], medoid_denormalized[:, y_idx]])
+
+                # medoid_scatter.set_offsets(list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx]))))
+                # medoids_to_plot.append(list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx]))))
+                medoids_to_plot.append(list(zip(list(medoid_denormalized[:, x_idx]), list(medoid_denormalized[:, y_idx]))))
+            medoids_to_plot_f = list([item for row in medoids_to_plot for item in row])
+            medoid_scatter.set_offsets(medoids_to_plot_f)
+
+
+            # plt.draw()
                 # plt.pause(1)
                 # plt.cla()
                 # Redraw the plot
                 # fig.canvas.draw()
                 # fig.canvas.flush_events()
-        plt.clf()
-        fig.canvas.draw()
+        # plt.clf()
+        # fig.canvas.draw()
+        # plt.plot()
+        # fig.canvas.draw()
+        # plt.pause(1)
+        # plt.clf()  # clear figure
 
         # Pause for a short time to create the appearance of animation
         # time.sleep(0.1)
+        # plt.show()
+
+        fig.show()
         plt.pause(1)
+        plt.clf()
+
+        # plt.clf()
+        # fig.clf()
 
         # fig.draw(plt)?
 
