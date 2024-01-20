@@ -145,7 +145,6 @@ class Clarans(object):
         """
         Computes cost for medoids cluster.
         """
-
         cost = 0
         for point in data:
             # Initialize the minimum distance to a large number
@@ -199,9 +198,10 @@ class MedoidCluster(object):
     """
     MedoidCluster crate for medoid and scatter data.
     """
-    def __init__(self, cs, ms, m):
+    def __init__(self, cs, ms, msa, m):
         self.cluster_scatter = cs
         self.medoid_scatter = ms
+        self.medoid_samples = msa
         self.medoid = m
 
 def main(argv):
@@ -277,9 +277,10 @@ def main(argv):
         label_encoders[column] = LabelEncoder()
         rawdata[column] = label_encoders[column].fit_transform(rawdata[column])
 
+    clustering_data = rawdata
     if ignore_col is not None:
         for i in ignore_col:
-            clustering_data = rawdata.drop(i, axis='columns')
+            clustering_data = clustering_data.drop(i, axis='columns')
 
     # Convert categorical data to numerical data, normalize the data
     if categorical_col is not None:
@@ -315,8 +316,9 @@ def main(argv):
     Clarans.medoid_scatters = []
     ax.scatter(x_data, y_data, c='lightgrey', label='Data points')
     for i in range(clusters_cnt):
-        mc = MedoidCluster(ax.scatter([], [], c=get_color_name(i, True), marker='.', label='Medoids'),
-                           ax.scatter([], [], c=get_color_name(i, False), marker='X', label='Medoids'),
+        mc = MedoidCluster(ax.scatter([], [], c=get_color_name(i, True), marker='.', label='Clusters'),
+                           ax.scatter([], [], c=get_color_name(i, False), marker='o', label='Medoids'),
+                           ax.scatter([], [], c=get_color_name(i, True), marker='.', label='Samples'),
                            None)
         Clarans.medoid_scatters.append(mc)
     # medoid_scatter = Clarans.medoid_scatters
@@ -325,6 +327,9 @@ def main(argv):
     Clarans.iteration = 0
 
     def assign_points_to_medoids(pdata, medoids):
+        """
+        Assign points to cluster with medoids as center
+        """
         # Create a list of empty lists to store points for each medoid
         clusters = [[] for _ in medoids]
         for point in pdata:
@@ -335,10 +340,14 @@ def main(argv):
             # Assign the point to the cluster of the closest medoid
             clusters[closest_medoid_idx].append(point)
         return clusters
+
+    # init cost and first samples points
     Clarans.best_medoids = None
     Clarans.best_cost = float('inf')
     Clarans.current_medoids = random.sample(list(data), clusters_cnt)
     Clarans.current_cost = clarans.compute_cost(data, Clarans.current_medoids)
+
+    anim_steps = True
 
     def update(frame):
         print("current iteration: ", str(Clarans.iteration))
@@ -351,11 +360,20 @@ def main(argv):
             neighbor_cost = clarans.compute_cost(data, neighbor_medoids)
 
             # if the cost is better, then continue search for minimal cost
-            if neighbor_cost < Clarans.current_cost:
+            if neighbor_cost <= Clarans.current_cost:
                 Clarans.current_medoids = neighbor_medoids
                 Clarans.current_cost = neighbor_cost
                 num_examinations = 0  # Reset counter
+
             else:
+                for i in range(len(Clarans.current_medoids)):
+                    # Clarans.current_medoids
+                    if len(neighbor_medoids) > 0:
+                        cluster_data_denormalized = scaler.inverse_transform(neighbor_medoids)
+                        cluster_plot_data = list(zip(list(cluster_data_denormalized[:, x_idx]),
+                                                     list(cluster_data_denormalized[:, y_idx])))
+                        Clarans.medoid_scatters[i].medoid_samples.set_offsets(cluster_plot_data)
+                    # Clarans.medoid_scatters[i].medoid_samples.set
                 num_examinations += 1
 
         # if new cost is better, then update next medoids
@@ -369,6 +387,13 @@ def main(argv):
         #   Update plot for each medoid and its cluster
         for idx, cluster in enumerate(clusters):
             cluster_points = np.array(cluster)
+
+            if len(cluster_points) > 0:
+                cluster_data_denormalized = scaler.inverse_transform(cluster_points)
+                cluster_plot_data = list(zip(list(cluster_data_denormalized[:, x_idx]),
+                                             list(cluster_data_denormalized[:, y_idx])))
+                Clarans.medoid_scatters[idx].cluster_scatter.set_offsets(cluster_plot_data)
+
             if len(cluster_points) > 0:
                 cluster_data_denormalized = scaler.inverse_transform(cluster_points)
                 cluster_plot_data = list(zip(list(cluster_data_denormalized[:, x_idx]), list(cluster_data_denormalized[:, y_idx])))
