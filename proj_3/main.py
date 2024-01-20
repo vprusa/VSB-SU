@@ -206,18 +206,17 @@ class MedoidCluster(object):
 
 def main(argv):
     input_file = ''
-    target_variable = ''
     verbose = False
     max_neighbours = 5
     max_iterations = 10
     visualize_anim = True
     # Define the usage message
-    usage = 'Usage: script.py -i <inputfile> -t <target> -x <x_target>  -y <y_target> -c <clusters> -g <ignore> [-v] [-a]'
+    usage = 'Usage: script.py -i <inputfile> -x <x_target>  -y <y_target> -c <clusters> -g <ignore> [-v] [-a]'
 
     try:
         # Parse the command-line arguments
-        opts, args = getopt.getopt(argv, "hi:t:x:y:g:c:n:r:va",
-                                   ["ifile=", "target=", "xtarget=", "ytarget=",
+        opts, args = getopt.getopt(argv, "hi:x:y:g:c:n:r:va",
+                                   ["ifile=", "xtarget=", "ytarget=",
                                     "ignore=", "clusters=", "neighbours=", "iterations="])
     except getopt.GetoptError:
         print(usage)
@@ -229,8 +228,6 @@ def main(argv):
             sys.exit()
         elif opt in ("-i", "--ifile"):
             input_file = arg
-        elif opt in ("-t", "--target"):
-            target_variable = arg
         elif opt in ("-x", "--xtarget"):
             target_variable_x = arg
         elif opt in ("-y", "--ytarget"):
@@ -251,10 +248,9 @@ def main(argv):
 
     # Process the input and output files
     print('Input file is "', input_file, '"')
-    print('Target variable is "', target_variable, '"')
     if verbose:
         print("Verbose mode is enabled")
-    if input_file is None or target_variable is None or target_variable_x is None or target_variable_y is None:
+    if input_file is None or target_variable_x is None or target_variable_y is None:
         print(usage)
         exit(1)
 
@@ -265,10 +261,13 @@ def main(argv):
 
     print("Data:")
     pprint(list(rawdata.columns))
-    print("Target:")
-    print(target_variable)
     print("max_iterations:")
     print(max_iterations)
+
+    print("target_variable_x:")
+    print(target_variable_x)
+    print("target_variable_y:")
+    print(target_variable_y)
 
     # Convert categorical columns to numerical columns
     for column in rawdata.columns:
